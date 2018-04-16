@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 	"encoding/binary"
+	"fmt"
 )
 
 type Query struct {
@@ -13,11 +14,16 @@ type Query struct {
 }
 type DNSHeader struct {
 	ID      uint16
-	Opt     *Option
+	Opt     Option
 	QDCount uint16
 	AnCount uint16
 	NsCount uint16
 	ArCount uint16
+}
+
+func (h DNSHeader) String() string {
+	f := "DNSHeader(ID= %d, Opt=(%v), QDCount= %d, AnCount= %d, NsCount= %d, ArCount= %d)"
+	return fmt.Sprintf(f, h.ID, h.Opt.String(), h.QDCount, h.AnCount, h.NsCount, h.ArCount)
 }
 
 type Question struct {

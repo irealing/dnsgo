@@ -1,5 +1,7 @@
 package layer
 
+import "fmt"
+
 /*https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml*/
 const (
 	Unknown           QType = iota // unknown
@@ -21,6 +23,10 @@ const (
 type QType uint16
 type Option uint16
 
+func (opt Option) String() string {
+	f := "QR: %v, OPCode: %v, AA: %v, TC: %v, RD: %v, RA: %v, Z: %v, RCode: %v"
+	return fmt.Sprintf(f, opt.QR(), opt.OPCode(), opt.AA(), opt.TC(), opt.RD(), opt.RA(), opt.Z(), opt.RCode())
+}
 func (qt QType) Encode() []byte {
 	return encodeU16(uint16(qt))
 }
