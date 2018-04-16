@@ -1,9 +1,21 @@
 package layer
 
+/*https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml*/
 const (
-	AType     QType = 1
-	NSType    QType = 2
-	CNameType QType = 5
+	Unknown           QType = iota // unknown
+	Adress                         // A
+	NanmeServer                    //NS
+	MailDestination                //MD
+	MailForwarder                  //MF
+	CName                          //CNAME
+	SOA                            //SOA
+	MailboxDomain                  //MB
+	MailRenameDomain               //MR
+	NullRR                         //NULL
+	WellKnownService               //WKS
+	DomainNamePointer              //PTR
+	MailExchange                   //MX
+	TextStrings                    //TEXT
 )
 
 type QType uint16
