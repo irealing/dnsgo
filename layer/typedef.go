@@ -2,7 +2,9 @@ package layer
 
 import "fmt"
 
-/*https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml*/
+/**
+  *https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+*/
 const (
 	Unknown           QType = iota // unknown
 	Adress                         // A

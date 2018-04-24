@@ -3,10 +3,12 @@ package layer
 import (
 	"io"
 	"errors"
+	"strings"
 )
 
 var (
 	errDecode = errors.New("failed to encode")
+	errFormat = errors.New("error format")
 )
 
 type QueryDecoder struct {
@@ -34,4 +36,30 @@ func (qd *QueryDecoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
 		NsCount: nsCount, ArCount: arCount,
 	}
 	return header, nil
+}
+
+func (qd *QueryDecoder) DecodeQuestion(bs []byte, offset int) (*Question, int, error) {
+	c := offset
+	l := 0
+	bh := strings.Builder{}
+	bl := len(bs)
+	for {
+		c = offset + l
+		if c >= bl {
+			return nil, l, errFormat
+		}
+		l += 1
+		limit := int(bs[c])
+		if limit == 0 {
+			break
+		}
+		l += limit
+		limit += c + 1
+		if limit > bl || c+1 >= bl {
+			return nil, l, errFormat
+		}
+		bh.Write(bs[c+1 : limit])
+		bh.WriteRune('.')
+	}
+	return &Question{QName: bh.String()}, l, nil
 }
