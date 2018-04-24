@@ -24,6 +24,7 @@ const (
 
 type QType uint16
 type Option uint16
+type OptCfg func(option Option) Option
 
 func (opt Option) String() string {
 	f := "QR: %v, OPCode: %v, AA: %v, TC: %v, RD: %v, RA: %v, Z: %v, RCode: %v"
@@ -63,4 +64,12 @@ func (opt Option) OPCode() uint8 {
 	v := opt & (0xf << 11)
 	v = v >> 11
 	return uint8(v)
+}
+
+func NewOption(opts ... OptCfg) Option {
+	var opt Option
+	for _, cfg := range opts {
+		opt = cfg(opt)
+	}
+	return opt
 }
