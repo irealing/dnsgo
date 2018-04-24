@@ -4,6 +4,7 @@ import (
 	"io"
 	"errors"
 	"strings"
+	"encoding/binary"
 )
 
 var (
@@ -61,5 +62,9 @@ func (qd *QueryDecoder) DecodeQuestion(bs []byte, offset int) (*Question, int, e
 		bh.Write(bs[c+1 : limit])
 		bh.WriteRune('.')
 	}
-	return &Question{QName: bh.String()}, l, nil
+	qt := binary.BigEndian.Uint16(bs[l : l+2])
+	l += 2
+	qc := binary.BigEndian.Uint16(bs[l : l+2])
+	l += 2
+	return &Question{QName: bh.String(), Type: QType(qt), Class: qc}, l, nil
 }
