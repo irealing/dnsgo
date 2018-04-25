@@ -7,11 +7,31 @@ import (
 	"fmt"
 )
 
+var globalID uint16 = 0
+
 type Query struct {
 	Header    *DNSHeader
-	Questions []Question
+	Questions []*Question
 	Answers   []Answer
 }
+
+func SimpleQuery(domain string) *Query {
+	q := new(Query)
+	q.Header = &DNSHeader{
+		ID:      globalID,
+		Opt:     NewOption(),
+		QDCount: 1,
+	}
+	q.Questions = []*Question{
+		{
+			QName: domain,
+			Type:  Adress,
+			Class: 1,
+		},
+	}
+	return q
+}
+
 type DNSHeader struct {
 	ID      uint16
 	Opt     Option
@@ -24,6 +44,16 @@ type DNSHeader struct {
 func (h DNSHeader) String() string {
 	f := "DNSHeader(ID= %d, Opt=(%v), QDCount= %d, AnCount= %d, NsCount= %d, ArCount= %d)"
 	return fmt.Sprintf(f, h.ID, h.Opt.String(), h.QDCount, h.AnCount, h.NsCount, h.ArCount)
+}
+func (h *DNSHeader) Bytes() []byte {
+	buf := bytes.Buffer{}
+	arr := []uint16{h.ID, uint16(h.Opt), h.QDCount, h.AnCount, h.NsCount, h.ArCount}
+	bits := make([]byte, 2)
+	for i := 0; i < len(arr); i++ {
+		binary.BigEndian.PutUint16(bits, arr[i])
+		buf.Write(bits)
+	}
+	return buf.Bytes()
 }
 
 type Question struct {
