@@ -96,7 +96,8 @@ func (qd *QueryCoding) EncodeQuery(q *Query) []byte {
 	buf.Write(q.Header.Bytes())
 	if q.Questions != nil && len(q.Questions) > 0 {
 		for _, question := range q.Questions {
-			buf.Write(question.Bytes())
+			qbt := question.Bytes()
+			buf.Write(qbt)
 		}
 	}
 	return buf.Bytes()

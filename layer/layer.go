@@ -12,7 +12,7 @@ var globalID uint16 = 0
 type Query struct {
 	Header    *DNSHeader
 	Questions []*Question
-	Answers   []Answer
+	Answers   []*Answer
 }
 
 func SimpleQuery(domain string) *Query {
@@ -62,6 +62,9 @@ type Question struct {
 	Class uint16
 }
 
+func (q *Question) String() string {
+	return fmt.Sprintf("Question(QName:%s, Type:%v,Class:%v)", q.QName, q.Type, q.Class)
+}
 func (q *Question) Bytes() []byte {
 	buf := bytes.Buffer{}
 	buf.Write(q.encodeDomain())
@@ -76,7 +79,11 @@ func (q *Question) encodeDomain() []byte {
 	c := bytes.Buffer{}
 	keys := strings.Split(q.QName, ".")
 	for i := 0; i < len(keys); i++ {
-		arr := []byte(keys[i])
+		fragment := keys[i]
+		if len(fragment) < 1 {
+			continue
+		}
+		arr := []byte(fragment)
 		c.WriteByte(byte(len(arr)))
 		c.Write(arr)
 	}
