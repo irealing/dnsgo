@@ -63,14 +63,14 @@ func (s *server) Serve() error {
 }
 
 func (s *server) listen() error {
-	qc := &layer.queryEncoder{}
+	qc := layer.NewPacker()
 	buf := make([]byte, 512)
 	for {
 		n, addr, err := s.conn.ReadFromUDP(buf)
 		if err != nil {
 			return err
 		}
-		q, err := qc.DecodeBytes(buf[:n])
+		q, err := qc.Decode(buf[:n])
 		if err != nil {
 			continue
 		}
@@ -79,7 +79,7 @@ func (s *server) listen() error {
 	return nil
 }
 
-func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc *layer.queryEncoder) {
+func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc layer.Packer) {
 	log.Printf("recv dns query %s", addr.String())
 	query.Header.Opt = layer.NewOption(layer.QROpt)
 	s.conn.WriteToUDP(qc.Encode(query), addr)

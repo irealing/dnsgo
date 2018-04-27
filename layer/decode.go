@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 	"encoding/binary"
-	"bytes"
 )
 
 var (
@@ -13,10 +12,10 @@ var (
 	errFormat = errors.New("error format")
 )
 
-type queryEncoder struct {
+type queryDecoder struct {
 }
 
-func (qd *queryEncoder) DecodeBytes(bs []byte) (*Query, error) {
+func (qd *queryDecoder) Decode(bs []byte) (*Query, error) {
 	if len(bs) < 12 {
 		return nil, errFormat
 	}
@@ -30,16 +29,16 @@ func (qd *queryEncoder) DecodeBytes(bs []byte) (*Query, error) {
 	return q, err
 }
 
-func (qd *queryEncoder) DecodeReader(reader io.Reader) (*Query, error) {
+func (qd *queryDecoder) DecodeReader(reader io.Reader) (*Query, error) {
 	buf := make([]byte, 512)
 	n, err := reader.Read(buf)
 	if err != nil {
 		return nil, err
 	}
-	return qd.DecodeBytes(buf[:n])
+	return qd.Decode(buf[:n])
 }
 
-func (qd *queryEncoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
+func (qd *queryDecoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
 	if len(bs) != 12 {
 		return nil, errDecode
 	}
@@ -56,7 +55,7 @@ func (qd *queryEncoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
 	return header, nil
 }
 
-func (qd *queryEncoder) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
+func (qd *queryDecoder) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
 	rs := make([]*Question, num)
 	offset := 0
 	for i := 0; i < num; i++ {
@@ -69,7 +68,7 @@ func (qd *queryEncoder) DecodeQuestions(bs []byte, num int) ([]*Question, error)
 	}
 	return rs, nil
 }
-func (qd *queryEncoder) decodeQuestion(bs []byte, offset int) (*Question, int, error) {
+func (qd *queryDecoder) decodeQuestion(bs []byte, offset int) (*Question, int, error) {
 	c := offset
 	l := 0
 	bh := strings.Builder{}
@@ -97,15 +96,4 @@ func (qd *queryEncoder) decodeQuestion(bs []byte, offset int) (*Question, int, e
 	qc := binary.BigEndian.Uint16(bs[l : l+2])
 	l += 2
 	return &Question{QName: bh.String(), Type: QType(qt), Class: qc}, l, nil
-}
-func (qd *queryEncoder) Encode(q *Query) []byte {
-	buf := &bytes.Buffer{}
-	buf.Write(q.Header.Bytes())
-	if q.Questions != nil && len(q.Questions) > 0 {
-		for _, question := range q.Questions {
-			qbt := question.Bytes()
-			buf.Write(qbt)
-		}
-	}
-	return buf.Bytes()
 }

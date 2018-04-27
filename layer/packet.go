@@ -9,4 +9,10 @@ type Packer interface {
 }
 
 type packer struct {
+	queryEncoder
+	queryDecoder
+}
+
+func NewPacker() Packer {
+	return new(packer)
 }
