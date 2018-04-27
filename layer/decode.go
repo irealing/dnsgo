@@ -13,10 +13,10 @@ var (
 	errFormat = errors.New("error format")
 )
 
-type QueryCoding struct {
+type queryEncoder struct {
 }
 
-func (qd *QueryCoding) DecodeBytes(bs []byte) (*Query, error) {
+func (qd *queryEncoder) DecodeBytes(bs []byte) (*Query, error) {
 	if len(bs) < 12 {
 		return nil, errFormat
 	}
@@ -29,11 +29,17 @@ func (qd *QueryCoding) DecodeBytes(bs []byte) (*Query, error) {
 	q.Questions, err = qd.DecodeQuestions(bs[12:], int(header.QDCount))
 	return q, err
 }
-func (qd *QueryCoding) DecodeReader(reader io.Reader) (*Query, error) {
-	return nil, nil
+
+func (qd *queryEncoder) DecodeReader(reader io.Reader) (*Query, error) {
+	buf := make([]byte, 512)
+	n, err := reader.Read(buf)
+	if err != nil {
+		return nil, err
+	}
+	return qd.DecodeBytes(buf[:n])
 }
 
-func (qd *QueryCoding) DecodeHeader(bs []byte) (*DNSHeader, error) {
+func (qd *queryEncoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
 	if len(bs) != 12 {
 		return nil, errDecode
 	}
@@ -49,7 +55,8 @@ func (qd *QueryCoding) DecodeHeader(bs []byte) (*DNSHeader, error) {
 	}
 	return header, nil
 }
-func (qd *QueryCoding) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
+
+func (qd *queryEncoder) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
 	rs := make([]*Question, num)
 	offset := 0
 	for i := 0; i < num; i++ {
@@ -62,7 +69,7 @@ func (qd *QueryCoding) DecodeQuestions(bs []byte, num int) ([]*Question, error) 
 	}
 	return rs, nil
 }
-func (qd *QueryCoding) decodeQuestion(bs []byte, offset int) (*Question, int, error) {
+func (qd *queryEncoder) decodeQuestion(bs []byte, offset int) (*Question, int, error) {
 	c := offset
 	l := 0
 	bh := strings.Builder{}
@@ -91,7 +98,7 @@ func (qd *QueryCoding) decodeQuestion(bs []byte, offset int) (*Question, int, er
 	l += 2
 	return &Question{QName: bh.String(), Type: QType(qt), Class: qc}, l, nil
 }
-func (qd *QueryCoding) EncodeQuery(q *Query) []byte {
+func (qd *queryEncoder) Encode(q *Query) []byte {
 	buf := &bytes.Buffer{}
 	buf.Write(q.Header.Bytes())
 	if q.Questions != nil && len(q.Questions) > 0 {

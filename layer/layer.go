@@ -2,7 +2,6 @@ package layer
 
 import (
 	"bytes"
-	"strings"
 	"encoding/binary"
 	"fmt"
 )
@@ -76,19 +75,7 @@ func (q *Question) Bytes() []byte {
 }
 
 func (q *Question) encodeDomain() []byte {
-	c := bytes.Buffer{}
-	keys := strings.Split(q.QName, ".")
-	for i := 0; i < len(keys); i++ {
-		fragment := keys[i]
-		if len(fragment) < 1 {
-			continue
-		}
-		arr := []byte(fragment)
-		c.WriteByte(byte(len(arr)))
-		c.Write(arr)
-	}
-	c.WriteByte(0x00)
-	return c.Bytes()
+	return encodeDomain(q.QName)
 }
 
 type Answer struct {

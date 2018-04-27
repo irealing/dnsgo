@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	cfg *Config = nil
+	cfg = new(Config)
 )
 
 type Config struct {
@@ -21,7 +21,6 @@ func (c *Config) Validate() error {
 }
 func init() {
 	log.Println("init config")
-	cfg = new(Config)
 	cfg.Host = ""
 	cfg.Port = 65533
 	cfg.Validate()
