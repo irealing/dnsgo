@@ -1,8 +1,6 @@
 package layer
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
 )
 
@@ -44,16 +42,6 @@ func (h DNSHeader) String() string {
 	f := "DNSHeader(ID= %d, Opt=(%v), QDCount= %d, AnCount= %d, NsCount= %d, ArCount= %d)"
 	return fmt.Sprintf(f, h.ID, h.Opt.String(), h.QDCount, h.AnCount, h.NsCount, h.ArCount)
 }
-func (h *DNSHeader) Bytes() []byte {
-	buf := bytes.Buffer{}
-	arr := []uint16{h.ID, uint16(h.Opt), h.QDCount, h.AnCount, h.NsCount, h.ArCount}
-	bits := make([]byte, 2)
-	for i := 0; i < len(arr); i++ {
-		binary.BigEndian.PutUint16(bits, arr[i])
-		buf.Write(bits)
-	}
-	return buf.Bytes()
-}
 
 type Question struct {
 	QName string
@@ -63,15 +51,6 @@ type Question struct {
 
 func (q *Question) String() string {
 	return fmt.Sprintf("Question(QName:%s, Type:%v,Class:%v)", q.QName, q.Type, q.Class)
-}
-func (q *Question) Bytes() []byte {
-	buf := bytes.Buffer{}
-	buf.Write(q.encodeDomain())
-	buf.Write(q.Type.Encode())
-	ia := make([]byte, 2)
-	binary.BigEndian.PutUint16(ia, q.Class)
-	buf.Write(ia)
-	return buf.Bytes()
 }
 
 func (q *Question) encodeDomain() []byte {

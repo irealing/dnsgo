@@ -30,12 +30,7 @@ func (opt Option) String() string {
 	f := "QR: %v, OPCode: %v, AA: %v, TC: %v, RD: %v, RA: %v, Z: %v, RCode: %v"
 	return fmt.Sprintf(f, opt.QR(), opt.OPCode(), opt.AA(), opt.TC(), opt.RD(), opt.RA(), opt.Z(), opt.RCode())
 }
-func (qt QType) Encode() []byte {
-	return encodeU16(uint16(qt))
-}
-func (opt Option) Encode() []byte {
-	return encodeU16(uint16(opt))
-}
+
 func (opt Option) QR() bool {
 	return opt>>15 > 0
 }

@@ -17,6 +17,6 @@ func main() {
 	stop := make(chan os.Signal)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	v := <-stop
-	log.Println("exit ", v)
 	s.Shutdown()
+	log.Println("exit ", v)
 }

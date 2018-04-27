@@ -20,8 +20,8 @@ func (c *Config) Validate() error {
 	return nil
 }
 func init() {
-	log.Println("init config")
 	cfg.Host = ""
 	cfg.Port = 65533
 	cfg.Validate()
+	log.Printf("init config listen: %s", cfg.Addr)
 }

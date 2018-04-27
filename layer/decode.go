@@ -19,13 +19,13 @@ func (qd *queryDecoder) Decode(bs []byte) (*Query, error) {
 	if len(bs) < 12 {
 		return nil, errFormat
 	}
-	header, err := qd.DecodeHeader(bs[:12])
+	header, err := qd.decodeHeader(bs[:12])
 	if err != nil {
 		return nil, err
 	}
 	q := new(Query)
 	q.Header = header
-	q.Questions, err = qd.DecodeQuestions(bs[12:], int(header.QDCount))
+	q.Questions, err = qd.decodeQuestions(bs[12:], int(header.QDCount))
 	return q, err
 }
 
@@ -38,7 +38,7 @@ func (qd *queryDecoder) DecodeReader(reader io.Reader) (*Query, error) {
 	return qd.Decode(buf[:n])
 }
 
-func (qd *queryDecoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
+func (qd *queryDecoder) decodeHeader(bs []byte) (*DNSHeader, error) {
 	if len(bs) != 12 {
 		return nil, errDecode
 	}
@@ -55,7 +55,7 @@ func (qd *queryDecoder) DecodeHeader(bs []byte) (*DNSHeader, error) {
 	return header, nil
 }
 
-func (qd *queryDecoder) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
+func (qd *queryDecoder) decodeQuestions(bs []byte, num int) ([]*Question, error) {
 	rs := make([]*Question, num)
 	offset := 0
 	for i := 0; i < num; i++ {

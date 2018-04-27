@@ -40,6 +40,7 @@ func NewServer(addr string) (DNSServer, error) {
 	return server, nil
 }
 func (s *server) Shutdown() {
+	log.Println("dns server shutdown")
 	s.closeOnce.Do(s.shutdown)
 }
 func (s *server) shutdown() {
@@ -57,6 +58,7 @@ func (s *server) Serve() error {
 	}
 	conn, err := net.ListenUDP("udp", s.addr)
 	if err != nil {
+		return err
 	}
 	s.conn = conn
 	return s.listen()
@@ -68,10 +70,12 @@ func (s *server) listen() error {
 	for {
 		n, addr, err := s.conn.ReadFromUDP(buf)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		q, err := qc.Decode(buf[:n])
 		if err != nil {
+			log.Printf("decode error %v", err)
 			continue
 		}
 		go s.handleQuery(addr, q, qc)
