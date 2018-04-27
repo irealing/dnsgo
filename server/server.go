@@ -1,53 +1,89 @@
-package main
+package server
 
 import (
 	"net"
-	"log"
+	"sync"
+	"sync/atomic"
+	"errors"
 	"dnsgo/layer"
-	"os/signal"
-	"os"
-	"syscall"
+	"log"
 )
 
-func main() {
-	go serve()
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGKILL, syscall.SIGKILL)
-	s := <-stop
-	log.Println("exit", s)
+var (
+	ErrClosed = errors.New("closed dns server")
+)
+
+type DNSServer interface {
+	Serve() error
+	Addr() *net.UDPAddr
+	Shutdown()
 }
-func listen() (*net.UDPConn, error) {
-	addr, err := net.ResolveUDPAddr("udp", cfg.Addr)
+
+type server struct {
+	addr      *net.UDPAddr
+	conn      *net.UDPConn
+	closeOnce sync.Once
+	closed    int32
+	mutex     sync.Mutex
+}
+
+func NewServer(addr string) (DNSServer, error) {
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return nil, err
 	}
-	return net.ListenUDP("udp", addr)
-}
-func serve() {
-	conn, err := listen()
-	if err != nil {
-		log.Fatal(err)
+	var server DNSServer = &server{
+		addr:      udpAddr,
+		closeOnce: sync.Once{},
+		mutex:     sync.Mutex{},
 	}
-	log.Println("listen", conn.RemoteAddr())
-	buf := make([]byte, 512)
+	return server, nil
+}
+func (s *server) Shutdown() {
+	s.closeOnce.Do(s.shutdown)
+}
+func (s *server) shutdown() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	atomic.CompareAndSwapInt32(&s.closed, 0, 1)
+	if s.conn != nil {
+		s.conn.Close()
+	}
+}
+
+func (s *server) Serve() error {
+	if atomic.LoadInt32(&s.closed) != 0 {
+		return ErrClosed
+	}
+	conn, err := net.ListenUDP("udp", s.addr)
+	if err != nil {
+	}
+	s.conn = conn
+	return s.listen()
+}
+
+func (s *server) listen() error {
 	qc := &layer.QueryCoding{}
+	buf := make([]byte, 512)
 	for {
-		n, addr, err := conn.ReadFromUDP(buf)
+		n, addr, err := s.conn.ReadFromUDP(buf)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		q, err := qc.DecodeBytes(buf[:n])
 		if err != nil {
-			log.Println(addr, err)
 			continue
 		}
-		go handleQuery(addr, conn, q, qc)
+		go s.handleQuery(addr, q, qc)
 	}
-	defer conn.Close()
+	return nil
 }
-func handleQuery(addr *net.UDPAddr, writer *net.UDPConn, query *layer.Query, coder *layer.QueryCoding) {
+
+func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc *layer.QueryCoding) {
 	log.Printf("recv dns query %s", addr.String())
-	log.Println(query)
 	query.Header.Opt = layer.NewOption(layer.QROpt)
-	writer.WriteToUDP(coder.EncodeQuery(query), addr)
+	s.conn.WriteToUDP(qc.EncodeQuery(query), addr)
+}
+func (s *server) Addr() *net.UDPAddr {
+	return s.addr
 }
