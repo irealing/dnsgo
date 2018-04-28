@@ -3,7 +3,7 @@ package layer
 import "io"
 
 type Packer interface {
-	Encode(query *Query) []byte
+	Encode(query *Query) ([]byte, error)
 	Decode([]byte) (*Query, error)
 	DecodeReader(reader io.Reader) (*Query, error)
 }

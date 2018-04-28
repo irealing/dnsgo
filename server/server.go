@@ -86,7 +86,11 @@ func (s *server) listen() error {
 func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc layer.Packer) {
 	log.Printf("recv dns query %s", addr.String())
 	query.Header.Opt = layer.NewOption(layer.QROpt)
-	s.conn.WriteToUDP(qc.Encode(query), addr)
+	rs, err := qc.Encode(query)
+	if err != nil {
+		return
+	}
+	s.conn.WriteToUDP(rs, addr)
 }
 func (s *server) Addr() *net.UDPAddr {
 	return s.addr

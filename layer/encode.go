@@ -9,14 +9,26 @@ import (
 type queryEncoder struct {
 }
 
-func (qe *queryEncoder) Encode(q *Query) []byte {
-	buf := bytes.NewBuffer(qe.encodeHeader(q.Header))
+func (qe *queryEncoder) Encode(q *Query) ([]byte, error) {
+	bits := qe.encodeHeader(q.Header)
+	curLen := len(bits)
+	buf := bytes.NewBuffer(bits)
+	qc := len(q.Questions)
+	idx := make([]int, qc)
 	if q.Questions != nil && len(q.Questions) > 0 {
-		for _, question := range q.Questions {
-			buf.Write(qe.encodeQuestion(question))
+		for i := 0; i < len(q.Questions); i++ {
+			idx[i] = curLen
+			bits = qe.encodeQuestion(q.Questions[i])
+			curLen += len(bits)
+			buf.Write(bits)
 		}
 	}
-	return buf.Bytes()
+	bits, err := qe.encodeAnswers(q.Answers, idx)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(bits)
+	return buf.Bytes(), nil
 }
 func (qe *queryEncoder) encodeQuestion(q *Question) []byte {
 	buf := bytes.NewBuffer(encodeDomain(q.QName))
