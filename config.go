@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"github.com/irealing/argsparser"
+	"errors"
 )
 
 var (
@@ -12,16 +14,22 @@ var (
 type Config struct {
 	Host string `param:"host"`
 	Port int    `param:"port"`
-	Addr string `param:"-"`
+	Addr string `param:""`
 }
 
 func (c *Config) Validate() error {
+	if c.Host == "" || c.Port < 1 {
+		return errors.New("params error")
+	}
 	c.Addr = fmt.Sprintf("%s:%d", c.Host, c.Port)
 	return nil
 }
 func init() {
-	cfg.Host = ""
-	cfg.Port = 65533
-	cfg.Validate()
+	ap := argsparser.New(cfg)
+	ap.Init()
+	if err := ap.Parse(); err != nil {
+		log.Fatal(err)
+		return
+	}
 	log.Printf("init config listen: %s", cfg.Addr)
 }
