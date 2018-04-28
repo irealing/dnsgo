@@ -105,7 +105,8 @@ func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, p layer.Pack
 }
 
 func (s *server) defaultFinder(query *layer.Query) *layer.Query {
-	query.Header.Opt = layer.NewOption(layer.QROpt)
+	query.Header.Opt = layer.NewOption(layer.QROpt, layer.RCodeOPt(2))
+	query.Header.ArCount = 0
 	return query
 }
 func (s *server) Addr() *net.UDPAddr {

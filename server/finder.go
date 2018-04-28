@@ -6,5 +6,5 @@ import (
 )
 
 type DNSFinder interface {
-	Find(remotAddr *net.UDPAddr, query *layer.Query) (*layer.Query, error)
+	Find(remoteAddr *net.UDPAddr, query *layer.Query) (*layer.Query, error)
 }
