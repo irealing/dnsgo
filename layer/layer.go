@@ -4,35 +4,18 @@ import (
 	"fmt"
 )
 
-var globalID uint16 = 0
-
 type Query struct {
 	Header    *DNSHeader
 	Questions []*Question
 	Answers   []*Answer
 }
 
-func SimpleQuery(domain string) *Query {
-	q := new(Query)
-	q.Header = &DNSHeader{
-		ID:      globalID,
-		Opt:     NewOption(),
-		QDCount: 1,
-	}
-	q.Questions = []*Question{
-		{
-			QName: domain,
-			Type:  Adress,
-			Class: 1,
-		},
-	}
-	return q
-}
-
 type DNSHeader struct {
-	ID      uint16
-	Opt     Option
+	ID  uint16
+	Opt Option
+	//QDCount 查询数
 	QDCount uint16
+	//AnCount 应答数
 	AnCount uint16
 	NsCount uint16
 	ArCount uint16

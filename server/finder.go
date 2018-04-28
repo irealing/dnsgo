@@ -1,7 +1,10 @@
 package server
 
-import "dnsgo/layer"
+import (
+	"dnsgo/layer"
+	"net"
+)
 
 type DNSFinder interface {
-	Find(query *layer.Query) (*layer.Query, error)
+	Find(remotAddr *net.UDPAddr, query *layer.Query) (*layer.Query, error)
 }

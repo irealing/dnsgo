@@ -88,7 +88,7 @@ func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, p layer.Pack
 	var r *layer.Query
 	var err error
 	if finder, ok := interface{}(s).(DNSFinder); ok {
-		r, err = finder.Find(query)
+		r, err = finder.Find(addr, query)
 		if err != nil {
 			log.Println(err)
 			return
