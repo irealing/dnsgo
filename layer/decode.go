@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	errDecode = errors.New("failed to encode")
+	errDecode = errors.New("failed to decode")
+	errEncode = errors.New("failed to encode")
 	errFormat = errors.New("error format")
 )
 

@@ -65,3 +65,8 @@ type Answer struct {
 	RDLen uint16
 	RData []byte
 }
+
+func (an *Answer) String() string {
+	f := "Answer(Name=%s ,Type=%d ,Class=%d ,TTL=%d ,RDLen=%d, RData=...)"
+	return fmt.Sprintf(f, an.Name, an.Type, an.Class, an.TTL, an.RDLen)
+}

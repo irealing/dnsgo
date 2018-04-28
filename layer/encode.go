@@ -3,6 +3,7 @@ package layer
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
 )
 
 type queryEncoder struct {
@@ -35,4 +36,40 @@ func (qe *queryEncoder) encodeHeader(h *DNSHeader) []byte {
 		buf.Write(cache)
 	}
 	return buf.Bytes()
+}
+func (qe *queryEncoder) encodeAnswers(ans []*Answer, idxs []int) ([]byte, error) {
+	if idxs != nil && len(ans) != len(idxs) {
+		return nil, errEncode
+	}
+	useIndex := false
+	if idxs != nil {
+		useIndex = true
+	}
+	buf := &bytes.Buffer{}
+	var idx int
+	for i := 0; i < len(ans); i++ {
+		if useIndex {
+			idx = idxs[i]
+		}
+		qe.encodeAnswer(ans[i], buf, idx)
+	}
+	return buf.Bytes(), nil
+}
+func (qe *queryEncoder) encodeAnswer(answer *Answer, writer io.Writer, index int) {
+	cache := make([]byte, 4)
+	if index < 1 {
+		writer.Write(encodeDomain(answer.Name))
+	} else {
+		binary.BigEndian.PutUint16(cache, 0xc000|uint16(index))
+		writer.Write(cache)
+	}
+	binary.BigEndian.PutUint16(cache, uint16(answer.Type))
+	writer.Write(cache[:2])
+	binary.BigEndian.PutUint16(cache, answer.Class)
+	writer.Write(cache[:2])
+	binary.BigEndian.PutUint32(cache, answer.TTL)
+	writer.Write(cache)
+	binary.BigEndian.PutUint16(cache, answer.RDLen)
+	writer.Write(cache[:2])
+	writer.Write(answer.RData)
 }
