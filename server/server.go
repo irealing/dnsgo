@@ -88,6 +88,7 @@ func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc layer.Pac
 	query.Header.Opt = layer.NewOption(layer.QROpt)
 	rs, err := qc.Encode(query)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	s.conn.WriteToUDP(rs, addr)

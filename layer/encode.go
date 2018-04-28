@@ -23,11 +23,13 @@ func (qe *queryEncoder) Encode(q *Query) ([]byte, error) {
 			buf.Write(bits)
 		}
 	}
-	bits, err := qe.encodeAnswers(q.Answers, idx)
-	if err != nil {
-		return nil, err
+	if q.Answers != nil && len(q.Answers) > 0 {
+		bits, err := qe.encodeAnswers(q.Answers, idx)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(bits)
 	}
-	buf.Write(bits)
 	return buf.Bytes(), nil
 }
 func (qe *queryEncoder) encodeQuestion(q *Question) []byte {
