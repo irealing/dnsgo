@@ -83,15 +83,30 @@ func (s *server) listen() error {
 	return nil
 }
 
-func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, qc layer.Packer) {
+func (s *server) handleQuery(addr *net.UDPAddr, query *layer.Query, p layer.Packer) {
 	log.Printf("recv dns query %s", addr.String())
-	query.Header.Opt = layer.NewOption(layer.QROpt)
-	rs, err := qc.Encode(query)
+	var r *layer.Query
+	var err error
+	if finder, ok := interface{}(s).(DNSFinder); ok {
+		r, err = finder.Find(query)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	} else {
+		r = s.defaultFinder(query)
+	}
+	rs, err := p.Encode(r)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	s.conn.WriteToUDP(rs, addr)
+}
+
+func (s *server) defaultFinder(query *layer.Query) *layer.Query {
+	query.Header.Opt = layer.NewOption(layer.QROpt)
+	return query
 }
 func (s *server) Addr() *net.UDPAddr {
 	return s.addr
