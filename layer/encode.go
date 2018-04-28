@@ -75,7 +75,7 @@ func (qe *queryEncoder) encodeAnswer(answer *Answer, writer io.Writer, index int
 		writer.Write(encodeDomain(answer.Name))
 	} else {
 		binary.BigEndian.PutUint16(cache, 0xc000|uint16(index))
-		writer.Write(cache)
+		writer.Write(cache[:2])
 	}
 	binary.BigEndian.PutUint16(cache, uint16(answer.Type))
 	writer.Write(cache[:2])
