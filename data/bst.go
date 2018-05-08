@@ -20,11 +20,11 @@ func (n node) Empty() bool {
 	return n.Right == nil && n.Left == nil
 }
 
-type BSTree struct {
+type bsTree struct {
 	root *node
 }
 
-func (bst *BSTree) Insert(v uint32, attch string) error {
+func (bst *bsTree) Insert(v uint32, attch string) error {
 	n := &node{Value: v, Attch: attch}
 	if bst.root == nil {
 		bst.root = n
@@ -49,7 +49,7 @@ func (bst *BSTree) Insert(v uint32, attch string) error {
 	}
 	return nil
 }
-func (bst *BSTree) Search(v uint32) (s string, err error) {
+func (bst *bsTree) Search(v uint32) (s string, err error) {
 	p := bst.root
 	if p == nil {
 		return "", errNotFound
@@ -71,7 +71,7 @@ func (bst *BSTree) Search(v uint32) (s string, err error) {
 	}
 	return
 }
-func traverse(n *node, callback func(uint32, string)) {
+func traverse(n *node, callback func(*node)) {
 	p := n
 	ns := newStack()
 	for p != nil || !ns.Empty() {
@@ -81,11 +81,17 @@ func traverse(n *node, callback func(uint32, string)) {
 		}
 		if !ns.Empty() {
 			p = ns.Pop()
-			callback(p.Value, p.Attch)
+			callback(p)
 			p = p.Right
 		}
 	}
 }
-func (bst *BSTree) Traverse(callback func(uint32, string)) {
-	traverse(bst.root, callback)
+
+func (bst *bsTree) Traverse(callback func(uint32, string)) {
+	traverse(bst.root, func(i *node) {
+		callback(i.Value, i.Attch)
+	})
+}
+func (bst *bsTree) Root() *node {
+	return bst.root
 }
