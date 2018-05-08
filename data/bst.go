@@ -1,9 +1,12 @@
 package data
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
-	errNotFound = errors.New("not found")
+	errNotFound       = errors.New("not found")
+	errAlreadyExisted = errors.New("element already existed")
 )
 
 type node struct {
@@ -13,20 +16,24 @@ type node struct {
 	Attch string
 }
 
+func (n node) Empty() bool {
+	return n.Right == nil && n.Left == nil
+}
+
 type BSTree struct {
 	root *node
 }
 
-func (bst *BSTree) Insert(v uint32, attch string) {
+func (bst *BSTree) Insert(v uint32, attch string) error {
 	n := &node{Value: v, Attch: attch}
 	if bst.root == nil {
 		bst.root = n
-		return
+		return errAlreadyExisted
 	}
 	p, fa := bst.root, bst.root
 	for p != nil {
 		if p.Value == n.Value {
-			return
+			return errAlreadyExisted
 		}
 		fa = p
 		if p.Value > n.Value {
@@ -40,6 +47,7 @@ func (bst *BSTree) Insert(v uint32, attch string) {
 	} else {
 		fa.Right = n
 	}
+	return nil
 }
 func (bst *BSTree) Search(v uint32) (s string, err error) {
 	p := bst.root
@@ -62,4 +70,22 @@ func (bst *BSTree) Search(v uint32) (s string, err error) {
 		err = errNotFound
 	}
 	return
+}
+func traverse(n *node, callback func(uint32, string)) {
+	p := n
+	ns := newStack()
+	for p != nil || !ns.Empty() {
+		for p != nil {
+			ns.Push(p)
+			p = p.Left
+		}
+		if !ns.Empty() {
+			p = ns.Pop()
+			callback(p.Value, p.Attch)
+			p = p.Right
+		}
+	}
+}
+func (bst *BSTree) Traverse(callback func(uint32, string)) {
+	traverse(bst.root, callback)
 }
