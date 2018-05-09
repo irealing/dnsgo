@@ -5,6 +5,10 @@ import "io"
 type BSTReaderWriter interface {
 	Write(tree *bsTree, writer io.Writer) error
 	WriteFile(tree *bsTree, filename string) error
-	Reade(reader io.Reader) (*bsTree, error)
-	ReadeFile(filename string) (*bsTree, error)
+	Read(reader io.Reader) (*bsTree, error)
+	ReadFile(filename string) (*bsTree, error)
+}
+type bstRWImpl struct {
+	bstReader
+	bstWriter
 }
