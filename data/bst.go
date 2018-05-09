@@ -9,23 +9,37 @@ var (
 	errAlreadyExisted = errors.New("element already existed")
 )
 
+type TraverMethod func(*Index)
+type IndexTree interface {
+	Insert(index *Index) error
+	Search(v uint32) (*Index, error)
+	Traverse(method TraverMethod)
+	TraverseLeft(method TraverMethod)
+	TraverseRight(method TraverMethod)
+	Root() *Index
+	Empty() bool
+}
+
 type node struct {
 	Value uint32
 	Left  *node
 	Right *node
-	Attch string
+	Attch *Index
 }
 
 func (n node) Empty() bool {
 	return n.Right == nil && n.Left == nil
+}
+func NewIndexTree() IndexTree {
+	return new(bsTree)
 }
 
 type bsTree struct {
 	root *node
 }
 
-func (bst *bsTree) Insert(v uint32, attch string) error {
-	n := &node{Value: v, Attch: attch}
+func (bst *bsTree) Insert(ele *Index) error {
+	n := &node{Value: ele.Index(), Attch: ele}
 	if bst.root == nil {
 		bst.root = n
 		return errAlreadyExisted
@@ -49,10 +63,10 @@ func (bst *bsTree) Insert(v uint32, attch string) error {
 	}
 	return nil
 }
-func (bst *bsTree) Search(v uint32) (s string, err error) {
+func (bst *bsTree) Search(v uint32) (s *Index, err error) {
 	p := bst.root
 	if p == nil {
-		return "", errNotFound
+		return nil, errNotFound
 	}
 	for p != nil {
 		if p.Value == v {
@@ -87,11 +101,36 @@ func traverse(n *node, callback func(*node)) {
 	}
 }
 
-func (bst *bsTree) Traverse(callback func(uint32, string)) {
+func (bst *bsTree) Traverse(method TraverMethod) {
+	if bst.root == nil {
+		return
+	}
 	traverse(bst.root, func(i *node) {
-		callback(i.Value, i.Attch)
+		method(i.Attch)
 	})
 }
-func (bst *bsTree) Root() *node {
-	return bst.root
+func (bst *bsTree) TraverseLeft(method TraverMethod) {
+	if bst.root == nil || bst.root.Left == nil {
+		return
+	}
+	traverse(bst.root.Left, func(i *node) {
+		method(i.Attch)
+	})
+}
+func (bst *bsTree) TraverseRight(method TraverMethod) {
+	if bst.root == nil || bst.root.Right == nil {
+		return
+	}
+	traverse(bst.root.Right, func(i *node) {
+		method(i.Attch)
+	})
+}
+func (bst *bsTree) Root() *Index {
+	if bst.root != nil {
+		return bst.root.Attch
+	}
+	return nil
+}
+func (bst *bsTree) Empty() bool {
+	return bst.root == nil
 }

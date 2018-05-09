@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 	"errors"
-	"encoding/binary"
 )
 
 var (
@@ -15,14 +14,14 @@ var (
 type bstReader struct {
 }
 
-func (br *bstReader) Read(reader io.Reader) (*bsTree, error) {
+func (br *bstReader) Read(reader io.Reader) (IndexTree, error) {
 	bst := new(bsTree)
 	var gerr error
 	for {
-		n, err := br.readNode(reader)
+		n, err := br.readIndex(reader)
 		switch err {
 		case nil:
-			bst.Insert(n.Value, n.Attch)
+			bst.Insert(n)
 		case errStop:
 			break
 		default:
@@ -32,22 +31,10 @@ func (br *bstReader) Read(reader io.Reader) (*bsTree, error) {
 	}
 	return bst, gerr
 }
-func (br *bstReader) readNode(reader io.Reader) (*node, error) {
-	buf := make([]byte, 8)
-	n, err := reader.Read(buf)
-	if err != nil || n != 8 {
-		return nil, errFmt
-	}
-	v := binary.BigEndian.Uint32(buf[:4])
-	l := binary.BigEndian.Uint32(buf[4:])
-	data := make([]byte, l)
-	n, err = reader.Read(data)
-	if err != nil || n != int(l) {
-		return nil, errFmt
-	}
-	return &node{Value: v, Attch: string(data)}, nil
+func (br *bstReader) readIndex(reader io.Reader) (*Index, error) {
+	//TODO implements readIndex method
 }
-func (br *bstReader) ReadFile(filename string) (*bsTree, error) {
+func (br *bstReader) ReadFile(filename string) (IndexTree, error) {
 	input, err := os.Open(filename)
 	if err != nil {
 		return nil, err
