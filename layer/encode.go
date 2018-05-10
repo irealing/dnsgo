@@ -24,7 +24,7 @@ func (qe *queryEncoder) Encode(q *Query) ([]byte, error) {
 		}
 	}
 	if q.Answers != nil && len(q.Answers) > 0 {
-		bits, err := qe.encodeAnswers(q.Answers, idx)
+		bits, err := qe.EncodeAnswers(q.Answers, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +51,7 @@ func (qe *queryEncoder) encodeHeader(h *DNSHeader) []byte {
 	}
 	return buf.Bytes()
 }
-func (qe *queryEncoder) encodeAnswers(ans []*Answer, idxs []int) ([]byte, error) {
+func (qe *queryEncoder) EncodeAnswers(ans []*Answer, idxs []int) ([]byte, error) {
 	if idxs != nil && len(ans) != len(idxs) {
 		return nil, errEncode
 	}
@@ -65,11 +65,11 @@ func (qe *queryEncoder) encodeAnswers(ans []*Answer, idxs []int) ([]byte, error)
 		if useIndex {
 			idx = idxs[i]
 		}
-		qe.encodeAnswer(ans[i], buf, idx)
+		qe.EncodeAnswer(ans[i], buf, idx)
 	}
 	return buf.Bytes(), nil
 }
-func (qe *queryEncoder) encodeAnswer(answer *Answer, writer io.Writer, index int) {
+func (qe *queryEncoder) EncodeAnswer(answer *Answer, writer io.Writer, index int) {
 	cache := make([]byte, 4)
 	if index < 1 {
 		writer.Write(encodeDomain(answer.Name))

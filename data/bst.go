@@ -9,14 +9,14 @@ var (
 	errAlreadyExisted = errors.New("element already existed")
 )
 
-type TraverMethod func(*Index)
+type TraverMethod func(*Record)
 type IndexTree interface {
-	Insert(index *Index) error
-	Search(v uint32) (*Index, error)
+	Insert(index *Record) error
+	Search(v uint32) (*Record, error)
 	Traverse(method TraverMethod)
 	TraverseLeft(method TraverMethod)
 	TraverseRight(method TraverMethod)
-	Root() *Index
+	Root() *Record
 	Empty() bool
 }
 
@@ -24,7 +24,7 @@ type node struct {
 	Value uint32
 	Left  *node
 	Right *node
-	Attch *Index
+	Attch *Record
 }
 
 func (n node) Empty() bool {
@@ -38,7 +38,7 @@ type bsTree struct {
 	root *node
 }
 
-func (bst *bsTree) Insert(ele *Index) error {
+func (bst *bsTree) Insert(ele *Record) error {
 	n := &node{Value: ele.Index(), Attch: ele}
 	if bst.root == nil {
 		bst.root = n
@@ -63,7 +63,7 @@ func (bst *bsTree) Insert(ele *Index) error {
 	}
 	return nil
 }
-func (bst *bsTree) Search(v uint32) (s *Index, err error) {
+func (bst *bsTree) Search(v uint32) (s *Record, err error) {
 	p := bst.root
 	if p == nil {
 		return nil, errNotFound
@@ -125,7 +125,7 @@ func (bst *bsTree) TraverseRight(method TraverMethod) {
 		method(i.Attch)
 	})
 }
-func (bst *bsTree) Root() *Index {
+func (bst *bsTree) Root() *Record {
 	if bst.root != nil {
 		return bst.root.Attch
 	}

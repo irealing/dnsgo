@@ -26,7 +26,7 @@ func (qd *queryDecoder) Decode(bs []byte) (*Query, error) {
 	}
 	q := new(Query)
 	q.Header = header
-	q.Questions, err = qd.decodeQuestions(bs[12:], int(header.QDCount))
+	q.Questions, err = qd.DecodeQuestions(bs[12:], int(header.QDCount))
 	return q, err
 }
 
@@ -56,7 +56,7 @@ func (qd *queryDecoder) decodeHeader(bs []byte) (*DNSHeader, error) {
 	return header, nil
 }
 
-func (qd *queryDecoder) decodeQuestions(bs []byte, num int) ([]*Question, error) {
+func (qd *queryDecoder) DecodeQuestions(bs []byte, num int) ([]*Question, error) {
 	rs := make([]*Question, num)
 	offset := 0
 	for i := 0; i < num; i++ {

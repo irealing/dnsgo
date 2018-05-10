@@ -33,7 +33,7 @@ outer:
 	}
 	return bst, gerr
 }
-func (br *bstReader) readIndex(reader io.Reader) (uint32, *Index, error) {
+func (br *bstReader) readIndex(reader io.Reader) (uint32, *Record, error) {
 	bs := make([]byte, 16)
 	n, err := reader.Read(bs[:5])
 	if err != nil || n < 5 {
@@ -54,10 +54,10 @@ func (br *bstReader) readIndex(reader io.Reader) (uint32, *Index, error) {
 		return 0, nil, errFmt
 	}
 	t := binary.BigEndian.Uint32(bs)
-	c := binary.BigEndian.Uint32(bs[4:])
-	s := binary.BigEndian.Uint32(bs[8:])
-	e := binary.BigEndian.Uint32(bs[12:])
-	return v, &Index{Name: string(nbs), Type: t, Class: c, Start: s, End: e}, nil
+	//c := binary.BigEndian.Uint32(bs[4:])
+	//s := binary.BigEndian.Uint32(bs[8:])
+	//e := binary.BigEndian.Uint32(bs[12:])
+	return v, &Record{Name: string(nbs), Type: t, }, nil
 }
 func (br *bstReader) ReadFile(filename string) (IndexTree, error) {
 	input, err := os.Open(filename)

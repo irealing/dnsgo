@@ -1,6 +1,9 @@
 package data
 
-import "io"
+import (
+	"io"
+	"dnsgo/layer"
+)
 
 type BSTReaderWriter interface {
 	Write(tree IndexTree, writer io.Writer) error
@@ -14,5 +17,8 @@ type bstRWImpl struct {
 }
 
 func NewBstRWImpl() BSTReaderWriter {
-	return new(bstRWImpl)
+	return &bstRWImpl{
+		bstReader{},
+		bstWriter{layer.NewPacker()},
+	}
 }
