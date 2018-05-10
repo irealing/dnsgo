@@ -21,10 +21,12 @@ func (bw *bstWriter) Write(tree IndexTree, writer io.Writer) error {
 	return nil
 }
 func (bw *bstWriter) writeIndex(index *Index, writer io.Writer) error {
-	//TODO implements writeIndex method
+	bits := index.Serialize()
+	_, err := writer.Write(bits)
+	return err
 }
 func (bw *bstWriter) WriteFile(tree IndexTree, filename string) error {
-	f, err := os.Open(filename)
+	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
