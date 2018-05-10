@@ -42,8 +42,8 @@ func (bw *bstWriter) SerializeRecord(record *Record) []byte {
 	binary.BigEndian.PutUint32(bs, record.Class)
 	buf.Write(bs)
 	binary.BigEndian.PutUint32(bs, record.Ac)
-	raw, _ := bw.coder.EncodeAnswers(record.Raw, nil)
-	buf.Write(raw)
+	//raw, _ := bw.coder.EncodeAnswers(record.Raw, nil)
+	//buf.Write(raw)
 	return buf.Bytes()
 }
 func (bw *bstWriter) WriteFile(tree IndexTree, filename string) error {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"errors"
 	"encoding/binary"
+	"dnsgo/layer"
 )
 
 var (
@@ -13,6 +14,7 @@ var (
 )
 
 type bstReader struct {
+	coder layer.Packer
 }
 
 func (br *bstReader) Read(reader io.Reader) (IndexTree, error) {
@@ -20,7 +22,7 @@ func (br *bstReader) Read(reader io.Reader) (IndexTree, error) {
 	var gerr error
 outer:
 	for {
-		_, n, err := br.readIndex(reader)
+		n, err := br.readRecord(reader)
 		switch err {
 		case nil:
 			bst.Insert(n)
@@ -33,31 +35,48 @@ outer:
 	}
 	return bst, gerr
 }
-func (br *bstReader) readIndex(reader io.Reader) (uint32, *Record, error) {
-	bs := make([]byte, 16)
-	n, err := reader.Read(bs[:5])
-	if err != nil || n < 5 {
+func (br *bstReader) readRecord(reader io.Reader) (*Record, error) {
+	bs := make([]byte, 12)
+	n, err := reader.Read(bs[:8])
+	if err != nil || n != 8 {
 		if n > 0 {
-			return 0, nil, errFmt
+			return nil, errFmt
+		} else {
+			return nil, errStop
 		}
-		return 0, nil, errStop
 	}
-	v := binary.BigEndian.Uint32(bs)
-	l := int(bs[4])
-	nbs := make([]byte, l)
-	n, err = reader.Read(nbs)
-	if err != nil || n != l {
-		return 0, nil, errFmt
+	l := int(binary.BigEndian.Uint32(bs[4:8]))
+	nb := make([]byte, l)
+	if n, err := reader.Read(nb); err != nil || n != l {
+		return nil, errFmt
 	}
-	n, err = reader.Read(bs)
-	if err != nil || n != 16 {
-		return 0, nil, errFmt
+	var ac, t, c uint32
+	if n, err := reader.Read(bs); n != 12 || err != nil {
+		return nil, errFmt
+	} else {
+		ac = binary.BigEndian.Uint32(bs)
+		t = binary.BigEndian.Uint32(bs[4:])
+		c = binary.BigEndian.Uint32(bs[8:])
 	}
-	t := binary.BigEndian.Uint32(bs)
-	//c := binary.BigEndian.Uint32(bs[4:])
-	//s := binary.BigEndian.Uint32(bs[8:])
-	//e := binary.BigEndian.Uint32(bs[12:])
-	return v, &Record{Name: string(nbs), Type: t, }, nil
+	an, err := br.readAnswers(reader, int(ac))
+	if err != nil {
+		return nil, err
+	}
+	return &Record{Name: string(nb), Type: t, Class: c, Ac: ac, Raw: an}, nil
+}
+func (br *bstReader) readAnswers(reader io.Reader, n int) ([]*layer.Answer, error) {
+	ret := make([]*layer.Answer, n)
+	for i := 0; i < n; i++ {
+		if r, err := br.readAnswer(reader); err != nil {
+			return nil, err
+		} else {
+			ret[i] = r
+		}
+	}
+	return ret, nil
+}
+func (br *bstReader) readAnswer(reader io.Reader) (*layer.Answer, error) {
+	return nil, nil
 }
 func (br *bstReader) ReadFile(filename string) (IndexTree, error) {
 	input, err := os.Open(filename)

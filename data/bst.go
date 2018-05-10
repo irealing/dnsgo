@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+	"log"
 )
 
 var (
@@ -40,6 +41,7 @@ type bsTree struct {
 
 func (bst *bsTree) Insert(ele *Record) error {
 	n := &node{Value: ele.Index(), Attch: ele}
+	log.Println("insert node ", n.Value, n.Attch.Name)
 	if bst.root == nil {
 		bst.root = n
 		return errAlreadyExisted
