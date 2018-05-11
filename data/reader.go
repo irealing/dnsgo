@@ -14,7 +14,7 @@ var (
 )
 
 type bstReader struct {
-	coder layer.Packer
+	orw *ObjectRW
 }
 
 func (br *bstReader) Read(reader io.Reader) (IndexTree, error) {
@@ -54,9 +54,9 @@ func (br *bstReader) readRecord(reader io.Reader) (*Record, error) {
 	if n, err := reader.Read(bs); n != 12 || err != nil {
 		return nil, errFmt
 	} else {
-		ac = binary.BigEndian.Uint32(bs)
-		t = binary.BigEndian.Uint32(bs[4:])
-		c = binary.BigEndian.Uint32(bs[8:])
+		t = binary.BigEndian.Uint32(bs)
+		c = binary.BigEndian.Uint32(bs[4:])
+		ac = binary.BigEndian.Uint32(bs[8:])
 	}
 	an, err := br.readAnswers(reader, int(ac))
 	if err != nil {
@@ -66,14 +66,16 @@ func (br *bstReader) readRecord(reader io.Reader) (*Record, error) {
 }
 func (br *bstReader) readAnswers(reader io.Reader, n int) ([]*layer.Answer, error) {
 	ret := make([]*layer.Answer, n)
+	var err error
 	for i := 0; i < n; i++ {
-		if r, err := br.readAnswer(reader); err != nil {
-			return nil, err
-		} else {
-			ret[i] = r
+		an := new(layer.Answer)
+		err = br.orw.Read(an, reader)
+		if err != nil {
+			break
 		}
+		ret[i] = an
 	}
-	return ret, nil
+	return ret, err
 }
 func (br *bstReader) readAnswer(reader io.Reader) (*layer.Answer, error) {
 	return nil, nil

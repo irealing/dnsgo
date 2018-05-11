@@ -2,7 +2,6 @@ package data
 
 import (
 	"io"
-	"dnsgo/layer"
 	"reflect"
 	"errors"
 	"encoding/binary"
@@ -20,9 +19,10 @@ type bstRWImpl struct {
 }
 
 func NewBstRWImpl() BSTReaderWriter {
+	owr := new(ObjectRW)
 	return &bstRWImpl{
-		bstReader{},
-		bstWriter{layer.NewPacker()},
+		bstReader{owr},
+		bstWriter{owr},
 	}
 }
 
@@ -96,9 +96,9 @@ func (srw *ObjectRW) readString(reader io.Reader) (string, error) {
 	if err != nil || n != 4 {
 		return "", errors.New("error format")
 	}
-	l := int(binary.BigEndian.Uint32(buf))
-	bits := make([]byte, l)
-	if n, err = reader.Read(bits); n != l {
+	l := binary.BigEndian.Uint32(buf)
+	bits := make([]byte, int(l))
+	if n, err = reader.Read(bits); n != int(l) {
 		return "", errors.New("error format")
 	}
 	return string(bits), nil
