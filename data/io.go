@@ -41,22 +41,52 @@ func (srw *ObjectRW) Read(o interface{}, reader io.Reader) error {
 		oft := ot.Field(i)
 		ofv := ov.Field(i)
 		switch oft.Type.Kind() {
-		case reflect.String:
-			var s string
-			s, err = srw.readString(reader)
-			ofv.SetString(s)
-		case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
-			var uv uint64
-			uv, err = srw.readUint(reader)
-			ofv.SetUint(uv)
-		case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
+		case reflect.Slice:
 			var v int64
 			v, err = srw.readInt(reader)
-			ofv.SetInt(v)
+			if err != nil {
+				break
+			}
+			sv := reflect.MakeSlice(oft.Type, int(v), int(v))
+			err = srw.injectSlice(sv, reader)
+			if err == nil {
+				ofv.Set(sv)
+			}
+		default:
+			err = srw.injectValue(ofv, reader)
 		}
 		if err != nil {
 			break
 		}
+	}
+	return err
+}
+func (srw *ObjectRW) injectSlice(v reflect.Value, reader io.Reader) error {
+	var err error
+	for i := 0; i < v.Len(); i++ {
+		e := v.Index(i)
+		err = srw.injectValue(e, reader)
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
+func (srw *ObjectRW) injectValue(ofv reflect.Value, reader io.Reader) error {
+	var err error
+	switch ofv.Type().Kind() {
+	case reflect.String:
+		var s string
+		s, err = srw.readString(reader)
+		ofv.SetString(s)
+	case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
+		var uv uint64
+		uv, err = srw.readUint(reader)
+		ofv.SetUint(uv)
+	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
+		var v int64
+		v, err = srw.readInt(reader)
+		ofv.SetInt(v)
 	}
 	return err
 }
