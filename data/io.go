@@ -105,16 +105,39 @@ func (srw *ObjectRW) Write(o interface{}, writer io.Writer) error {
 		sfv := ov.Field(i)
 		sft := ot.Field(i)
 		switch sft.Type.Kind() {
-		case reflect.String:
-			s := sfv.String()
-			err = srw.writeString(s, writer)
-		case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
-			ui := sfv.Uint()
-			err = srw.writeUint(ui, writer)
-		case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
-			i := sfv.Int()
-			err = srw.writeInt(i, writer)
+		case reflect.Slice:
+			err = srw.writeSlice(sfv, writer)
+		default:
+			err = srw.writeValue(sfv, writer)
 		}
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
+
+func (srw *ObjectRW) writeValue(sfv reflect.Value, writer io.Writer) error {
+	var err error
+	switch sfv.Type().Kind() {
+	case reflect.String:
+		s := sfv.String()
+		err = srw.writeString(s, writer)
+	case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
+		ui := sfv.Uint()
+		err = srw.writeUint(ui, writer)
+	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
+		i := sfv.Int()
+		err = srw.writeInt(i, writer)
+	}
+	return err
+}
+func (srw *ObjectRW) writeSlice(v reflect.Value, writer io.Writer) error {
+	l := v.Len()
+	srw.writeInt(int64(l), writer)
+	var err error
+	for i := 0; i < l; i++ {
+		err = srw.writeValue(v.Index(i), writer)
 		if err != nil {
 			break
 		}
