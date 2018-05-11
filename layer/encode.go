@@ -24,7 +24,7 @@ func (qe *queryEncoder) Encode(q *Query) ([]byte, error) {
 		}
 	}
 	if q.Answers != nil && len(q.Answers) > 0 {
-		bits, err := qe.EncodeAnswers(q.Answers, idx)
+		bits, err := qe.EncodeAnswers(q.Answers, nil)
 		if err != nil {
 			return nil, err
 		}

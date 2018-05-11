@@ -15,6 +15,7 @@ type Config struct {
 	Host string `param:"host"`
 	Port int    `param:"port"`
 	Addr string `param:""`
+	Src  string `param:"src"`
 }
 
 func (c *Config) Validate() error {

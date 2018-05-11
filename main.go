@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	s, err := server.NewServer(cfg.Addr)
+	s, err := server.NewServer(cfg.Addr, cfg.Src)
 	if err != nil {
 		log.Fatal(err)
 	}

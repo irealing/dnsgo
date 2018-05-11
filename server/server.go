@@ -7,6 +7,7 @@ import (
 	"errors"
 	"dnsgo/layer"
 	"log"
+	"dnsgo/data"
 )
 
 var (
@@ -25,9 +26,14 @@ type server struct {
 	closeOnce sync.Once
 	closed    int32
 	mutex     sync.Mutex
+	rTree     data.IndexTree
 }
 
-func NewServer(addr string) (DNSServer, error) {
+func NewServer(addr string, src string) (DNSServer, error) {
+	rTree, err := data.NewBstRWImpl().ReadFile(src)
+	if err != nil {
+		return nil, err
+	}
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return nil, err
@@ -36,6 +42,7 @@ func NewServer(addr string) (DNSServer, error) {
 		addr:      udpAddr,
 		closeOnce: sync.Once{},
 		mutex:     sync.Mutex{},
+		rTree:     rTree,
 	}
 	return server, nil
 }
